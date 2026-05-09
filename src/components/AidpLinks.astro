@@ -1,0 +1,10 @@
+---
+import { readConfig } from '../runtime/config'
+
+const config = readConfig()
+const stripTrailingSlash = (s: string) => (s.endsWith('/') ? s.slice(0, -1) : s)
+const entityHref = config.siteOrigin ? `${stripTrailingSlash(config.siteOrigin)}/.well-known/aidp.json` : null
+const keysHref = config.endpoint ? `${stripTrailingSlash(config.endpoint)}/.well-known/aidp-keys` : null
+---
+{entityHref && <link rel="aidp" href={entityHref} />}
+{keysHref && <link rel="aidp-keys" href={keysHref} />}

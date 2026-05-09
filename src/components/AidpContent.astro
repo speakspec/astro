@@ -1,0 +1,23 @@
+---
+import { readConfig } from '../runtime/config'
+import { registerContent } from '../runtime/server/utils/content-registry'
+
+interface Props {
+  contentId: string
+  /** Path the AI crawler will hit. Required so the middleware can
+   *  enrich subsequent impressions with content_id. */
+  pathname: string
+}
+
+const { contentId, pathname } = Astro.props
+const config = readConfig()
+const stripTrailingSlash = (s: string) => (s.endsWith('/') ? s.slice(0, -1) : s)
+const href = config.siteOrigin && contentId
+  ? `${stripTrailingSlash(config.siteOrigin)}/.well-known/aidp/content/${encodeURIComponent(contentId)}.json`
+  : null
+
+if (pathname && contentId) {
+  registerContent(pathname, contentId)
+}
+---
+{href && <link rel="aidp-content" href={href} />}
