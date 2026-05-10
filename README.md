@@ -127,6 +127,55 @@ interface FullStore {
 
 works.
 
+## Cache tuning
+
+The SDK serves three well-known routes with `Cache-Control` headers
+tuned for fast revocation propagation. If you have Cloudflare /
+CloudFront in front of your site, those headers are what the CDN
+respects — so they directly bound how long it takes a revoked fact
+to disappear from AI agent answers.
+
+There are two TTLs to think about:
+
+| Layer | What it does | Default | Affects |
+|---|---|---|---|
+| **SDK internal** | how long the SDK process reuses a fetched bundle before re-fetching from SpeakSpec | 300s | origin load on SpeakSpec |
+| **`Cache-Control: max-age`** | how long downstream caches (CDN + AI agents) reuse the response | 60s (entity/directory), 300s (content) | revocation propagation, CDN cost |
+
+**Why entity = 60s but content = 300s by default?** The entity directive (`/.well-known/aidp.json`) is the revocation pivot — when a customer revokes a fact, this is the document AI agents re-fetch first to learn what's still valid. Short `max-age` keeps revocation fast. Per-content envelopes (`/.well-known/aidp/content/[id].json`) are content-addressed: each `updated_at` produces a new signed bundle, so longer caching is safe.
+
+**Setting `max-age=0`** disables CDN caching for that route but does NOT disable `stale-while-revalidate` — the CDN still serves stale within the SWR window while it revalidates. To fully disable caching, set both `*_MAX_AGE=0` and `*_SWR=0`.
+
+The SDK internal TTL is mostly the safety net for missed webhooks —
+when an entity is revoked, SpeakSpec sends a webhook that clears the
+SDK cache instantly. Downstream `max-age` is the real ceiling on how
+quickly AI agents see the revocation.
+
+All values are configurable via env vars (seconds):
+
+```env
+# SDK internal cache (default 300)
+SPEAKSPEC_CACHE_TTL_SEC=300
+
+# /.well-known/aidp.json (default 60 / 300)
+SPEAKSPEC_ENTITY_MAX_AGE=60
+SPEAKSPEC_ENTITY_SWR=300
+
+# /.well-known/aidp/content/[id] (default 300 / 600)
+SPEAKSPEC_CONTENT_MAX_AGE=300
+SPEAKSPEC_CONTENT_SWR=600
+
+# /.well-known/aidp/content (default 60 / 300)
+SPEAKSPEC_DIRECTORY_MAX_AGE=60
+SPEAKSPEC_DIRECTORY_SWR=300
+```
+
+**Trade-off**: longer `max-age` means lower origin/CDN bill but
+slower revocation. Worst-case revocation propagation is bounded by
+`max-age + stale-while-revalidate`. If you want sub-minute revocation
+across Cloudflare, also wire SpeakSpec's webhook to a Cloudflare
+purge — out of SDK scope.
+
 ## Caveats vs `@speakspec/nuxt`
 
 - **Output mode**: requires Astro `output: 'server'` or `'hybrid'` for API routes to be dynamic. `output: 'static'` (the default) bakes all routes at build time and won't update directives without a rebuild.
