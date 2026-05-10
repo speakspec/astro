@@ -5,7 +5,7 @@
 //   import { aidpEntityRoute } from '@speakspec/astro'
 //   export const GET = aidpEntityRoute()
 //
-// Behavior mirrors @speakspec/nuxt:
+// Behavior (per AIDP transport spec §8.5–8.13):
 //   - Read cached payload + ETag; serve fresh + ETag + Cache-Control
 //   - Inbound If-None-Match → 304 short-circuit
 //   - Stale → fetch upstream with cached ETag; 304 → refresh; 200 → store

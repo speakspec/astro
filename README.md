@@ -47,10 +47,14 @@ export const GET = aidpDirectoryRoute()
 ```
 
 ```ts
-// src/pages/api/_aidp/invalidate.ts
+// src/pages/api/aidp/invalidate.ts  ← NO leading underscore
 import { aidpWebhookRoute } from '@speakspec/astro'
 export const POST = aidpWebhookRoute()
 ```
+
+> Astro 5 excludes any path segment starting with `_` from routing
+> (treats it as private). Use `api/aidp/...` (no leading underscore).
+> The path you register with the SpeakSpec dashboard must match.
 
 ## Wire the bot-detection middleware
 

@@ -1,18 +1,17 @@
-// Pure cache helpers for the AIDP SDK's Next.js route handlers.
+// Pure cache helpers for the AIDP SDK's framework-agnostic route
+// handlers (used by both `@speakspec/next` and `@speakspec/astro`).
 //
-// Storage IO is pluggable — Next App Router handlers don't have a
-// built-in storage primitive like Nitro's `useStorage`, so this
-// module stays framework-free and accepts any object satisfying the
-// `CacheStorage` interface. Default implementations (in-memory map,
-// fs-backed, Redis) are exposed from `./cache-store`.
+// Storage IO is pluggable — these hosts don't expose a built-in
+// storage primitive like Nitro's `useStorage`, so this module stays
+// framework-free and accepts any object satisfying the `CacheStorage`
+// interface. Default implementations (in-memory map, fs-backed, Redis)
+// are exposed from `./cache-store`.
 
 export interface CachedBundle<T = unknown> {
   payload: T
   etag: string
   expiresAt: number
 }
-
-export const STORAGE_NAMESPACE = 'cache:speakspec'
 
 export const DEFAULT_CACHE_TTL_MS = 5 * 60 * 1000
 

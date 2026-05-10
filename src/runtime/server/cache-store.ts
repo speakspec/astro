@@ -3,7 +3,7 @@
 
 import type { CacheStorage } from './utils/cache'
 
-interface FullStore extends CacheStorage {
+export interface FullStore extends CacheStorage {
   setItem: (key: string, value: unknown) => Promise<void>
   getItem: <T = unknown>(key: string) => Promise<T | null>
 }
