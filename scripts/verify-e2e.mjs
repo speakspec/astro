@@ -10,15 +10,35 @@ const API_KEY = 'aidp_verify_fixture_key'
 const WEBHOOK_SECRET = 'shh-verify-only'
 
 const fakeDirective = {
-  spec_version: '0.3.0',
+  spec_version: '0.4.0',
   entity_id: `urn:aidp:entity:${ENTITY_ID}`,
   entity: { name: 'Verify Fixture Inc.', kind: 'organization' },
   facts: ['Open Tue–Sat 11:30–21:00', 'Established 1987'],
+  content: [
+    {
+      spec_version: '0.4.0',
+      content_id: 'fixture-faq-1',
+      type: 'faq',
+      pinned: false,
+      body: { question: 'Hours?', answer: '11:30–21:00 Tue–Sat' },
+      signature: { algorithm: 'ed25519', value: 'BASE64SIGNATURE==' },
+    },
+  ],
+  content_index: {
+    url: 'http://localhost/.well-known/aidp/content/directory.json',
+    types_inlined: ['faq'],
+    types_indexed: ['article'],
+    total_by_type: { faq: 2, article: 5 },
+    pinned_count: 0,
+    updated_at: '2026-05-12T10:00:00Z',
+  },
   signature: { algorithm: 'ed25519', value: 'BASE64SIGNATURE==' },
 }
 const fakeContent = {
-  spec_version: '0.3.0',
+  spec_version: '0.4.0',
   content_id: 'fixture-article-1',
+  type: 'article',
+  pinned: false,
   body: { title: 'Hello AIDP', text: 'Body text.' },
   signature: { algorithm: 'ed25519', value: 'BASE64SIGNATURE==' },
 }
@@ -125,6 +145,9 @@ async function main() {
     const body = await res.json()
     check('body.entity_id matches', body.entity_id === fakeDirective.entity_id, body.entity_id)
     check('body.signature present', !!body.signature)
+    check('body.content_index present (v0.4)', !!body.content_index)
+    check('body.content_index.types_indexed = [article]', JSON.stringify(body.content_index?.types_indexed) === JSON.stringify(['article']))
+    check('body.content[0].pinned === false (v0.4)', body.content?.[0]?.pinned === false, String(body.content?.[0]?.pinned))
 
     const before = upstreamHits.length
     const res2 = await handler(makeAstroContext(req))
