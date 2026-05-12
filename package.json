@@ -1,6 +1,6 @@
 {
   "name": "@speakspec/astro",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "AIDP 0.3 publishing channel for Astro 5 — exposes /.well-known/aidp.json and friends, fetches signed content + pointer payloads from SpeakSpec, receives §8.10 cache-invalidation webhooks.",
   "repository": {
     "type": "git",
@@ -37,7 +37,6 @@
     "prepare": "node scripts/generate-version.mjs",
     "prepack": "pnpm build",
     "build": "pnpm generate:version && tsc -p tsconfig.build.json",
-    "prepack": "pnpm build",
     "lint": "eslint .",
     "test": "pnpm generate:version && vitest run --passWithNoTests",
     "test:types": "pnpm generate:version && tsc --noEmit"
