@@ -5,6 +5,7 @@ import {
   isUpstream4xx,
   etagMatches,
   respondWithCache,
+  buildContentUsage,
   DEFAULT_CACHE_TTL_MS,
   invalidateEntityCache,
   invalidateContentCache,
@@ -144,7 +145,8 @@ describe('respondWithCache', () => {
     expect(res.status).toBe(200)
     expect(res.headers.get('etag')).toBe('"abc"')
     expect(res.headers.get('cache-control')).toBe('public, max-age=60')
-    expect(res.headers.get('content-type')).toContain('application/json')
+    expect(res.headers.get('content-type')).toBe('application/aidp+json')
+    expect(res.headers.get('access-control-allow-origin')).toBe('*')
     expect(await res.json()).toEqual({ hello: 'world' })
   })
 
@@ -153,6 +155,7 @@ describe('respondWithCache', () => {
     expect(res.status).toBe(304)
     expect(res.headers.get('etag')).toBe('"abc"')
     expect(res.headers.get('cache-control')).toBe('public, max-age=60')
+    expect(res.headers.get('access-control-allow-origin')).toBe('*')
     expect(await res.text()).toBe('')
   })
 
@@ -164,6 +167,48 @@ describe('respondWithCache', () => {
   it('omits ETag header when the etag is empty', () => {
     const res = respondWithCache('', { x: 1 }, 'public, max-age=60', undefined)
     expect(res.headers.get('etag')).toBeNull()
+  })
+
+  it('emits Content-Usage when payload directives.access_control is present', () => {
+    const res = respondWithCache(
+      '"abc"',
+      { directives: { access_control: { allow_training: true, allow_derivative: true } } },
+      'public, max-age=60',
+      undefined,
+    )
+    expect(res.headers.get('content-usage')).toBe('allow=FoundationModelProduction, allow=Search')
+  })
+
+  it('omits Content-Usage when payload has no access_control', () => {
+    const res = respondWithCache('"abc"', { hello: 'world' }, 'public, max-age=60', undefined)
+    expect(res.headers.get('content-usage')).toBeNull()
+  })
+})
+
+describe('buildContentUsage', () => {
+  it('returns null for non-objects', () => {
+    expect(buildContentUsage(null)).toBeNull()
+    expect(buildContentUsage('payload')).toBeNull()
+    expect(buildContentUsage(123)).toBeNull()
+  })
+
+  it('returns null when directives is absent', () => {
+    expect(buildContentUsage({ hello: 'world' })).toBeNull()
+  })
+
+  it('returns null when access_control is absent or empty', () => {
+    expect(buildContentUsage({ directives: {} })).toBeNull()
+    expect(buildContentUsage({ directives: { access_control: {} } })).toBeNull()
+  })
+
+  it('emits disallow=FoundationModelProduction when allow_training is false', () => {
+    expect(buildContentUsage({ directives: { access_control: { allow_training: false } } }))
+      .toBe('disallow=FoundationModelProduction')
+  })
+
+  it('combines training + derivative flags with comma separator', () => {
+    expect(buildContentUsage({ directives: { access_control: { allow_training: true, allow_derivative: true } } }))
+      .toBe('allow=FoundationModelProduction, allow=Search')
   })
 })
 
