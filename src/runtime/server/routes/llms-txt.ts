@@ -37,7 +37,7 @@ export function llmsTxtRoute(): APIRoute {
     const url = `${config.endpoint.replace(/\/$/, '')}/public/entity/${encodeURIComponent(config.entityId)}`
     let text: string
     try {
-      text = await ofetch<string>(url, {
+      text = await ofetch(url, {
         method: 'GET',
         headers: {
           'User-Agent': SDK_USER_AGENT,
