@@ -56,6 +56,12 @@ export const POST = aidpWebhookRoute()
 > (treats it as private). Use `api/aidp/...` (no leading underscore).
 > The path you register with the SpeakSpec dashboard must match.
 
+```ts
+// src/pages/llms.txt.ts  (optional — serves spec §11.3 llms.txt projection)
+import { llmsTxtRoute } from '@speakspec/astro'
+export const GET = llmsTxtRoute()
+```
+
 ## Content inline vs directory (v0.4+)
 
 AIDP v0.4 introduces per-type content strategy. The entity owner can decide, per content type, whether content appears:

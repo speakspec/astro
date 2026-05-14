@@ -5,6 +5,7 @@ export { aidpEntityRoute } from './runtime/server/routes/well-known-aidp'
 export { aidpContentRoute } from './runtime/server/routes/well-known-content'
 export { aidpDirectoryRoute } from './runtime/server/routes/well-known-directory'
 export { aidpWebhookRoute } from './runtime/server/routes/webhook'
+export { llmsTxtRoute } from './runtime/server/routes/llms-txt'
 
 export { setCacheStore, getCacheStore, type FullStore } from './runtime/server/cache-store'
 export { type CacheStorage } from './runtime/server/utils/cache'

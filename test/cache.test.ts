@@ -113,7 +113,7 @@ describe('invalidateEntityCache', () => {
   it('is a no-op when no matching keys exist', async () => {
     const s = new FakeStorage()
     await invalidateEntityCache(s, 'nobody')
-    expect(s.removed).toEqual(['entity:nobody'])
+    expect(s.removed).toEqual(['entity:nobody', 'llmstxt:nobody'])
   })
 })
 
